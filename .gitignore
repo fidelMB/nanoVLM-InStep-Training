@@ -24,3 +24,6 @@ uv.lock
 checkpoints/
 notebooks/
 *.slurm
+
+
+mimic-cxr-dataset/data

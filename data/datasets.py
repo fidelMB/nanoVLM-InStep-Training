@@ -1,4 +1,6 @@
 import torch
+import json
+import io
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -91,7 +93,7 @@ class MMStarDataset(Dataset):  # https://huggingface.co/datasets/Lin-Chen/MMStar
         }
     
 
-class CXRDataset(Dataset): # pending to upload to huggingface, but this class is already prepared to receive the dataset without problems
+class CXRDataset(Dataset): # https://huggingface.co/datasets/jampycow/cxr-small-sample
     def __init__(self, dataset, tokenizer, image_processor):
         self.dataset = dataset
         self.tokenizer = tokenizer
@@ -103,7 +105,7 @@ class CXRDataset(Dataset): # pending to upload to huggingface, but this class is
     def __getitem__(self, idx):
         item = self.dataset[idx]
         
-        image = item['image']
+        image = Image.open(io.BytesIO((item['image'])))
             
         # Now process the image
         if isinstance(image, Image.Image):
@@ -115,12 +117,9 @@ class CXRDataset(Dataset): # pending to upload to huggingface, but this class is
             # Create empty tensor with right dimensions as fallback
             processed_image = torch.zeros(3, cfg.VLMConfig.vit_img_size, cfg.VLMConfig.vit_img_size)
         
-        # Process text (also a list)
+        # Process text, question and anwsers
         text_data = item['texts']
-        if isinstance(text_data, list) and len(text_data) > 0:
-            text = text_data[0]
-        else:
-            text = text_data
+        text = json.loads(text_data)
 
         question = text['question']
         # Add EOS token to the answer to train model to predict it, enabling correct stopping during generation
